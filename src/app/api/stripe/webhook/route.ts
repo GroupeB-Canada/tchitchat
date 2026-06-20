@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { upsertSubscriber, updateSubscriberStatus } from '@/lib/subscription'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-04-30.basil' })
-
 export async function POST(req: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-05-27.dahlia' })
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
@@ -25,6 +24,7 @@ export async function POST(req: NextRequest) {
         stripeCustomerId: sub.customer as string,
         subscriptionId: sub.id,
         status: sub.status,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         currentPeriodEnd: (sub as any).current_period_end,
       })
     }
