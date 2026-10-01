@@ -12,6 +12,14 @@ export const metadata: Metadata = {
   description: 'Chattez librement avec TchitChat',
 }
 
+// Surveillance d'erreurs maison (récepteur AWS). Le jeton d'écriture n'est JAMAIS dans le code :
+// il vient de la variable d'environnement du build NEXT_PUBLIC_ERROR_MONITOR_TOKEN (voir .env.example).
+// Sans jeton, rien n'est chargé (aucun effet).
+const ERROR_MONITOR_URL =
+  process.env.NEXT_PUBLIC_ERROR_MONITOR_URL ||
+  'https://hkuztyego2.execute-api.ca-central-1.amazonaws.com/errors'
+const ERROR_MONITOR_TOKEN = process.env.NEXT_PUBLIC_ERROR_MONITOR_TOKEN
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
   const adFree = session ? await isAdFree(session.sub) : false
@@ -19,6 +27,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="fr">
       <head>
+        {ERROR_MONITOR_TOKEN && (
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.ERROR_MONITOR=${JSON.stringify({
+                  url: ERROR_MONITOR_URL,
+                  token: ERROR_MONITOR_TOKEN,
+                  site: 'tchitchat.com',
+                }).replace(/</g, '\\u003c')};`,
+              }}
+            />
+            <script src="/error-client.js" defer />
+          </>
+        )}
         {!adFree && (
           <Script
             async
